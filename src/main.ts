@@ -9,13 +9,11 @@ app.innerHTML = `
       <div class="brand-frame" aria-label="ロゴ">
         <span class="brand-line brand-line-left"></span><span class="brand-name">ロゴ</span><span class="brand-line brand-line-right"></span>
       </div>
-      <div class="screen-label"><span>HOLO HOUSE</span><small>待機画面 <b>H-01</b></small></div>
     </header>
     <section class="content-panel" aria-label="待機画面">
       <div class="model-frame"><div id="model-view" aria-label="回転する家モデル"></div><span class="frame-caption">回転する家モデル</span></div>
       <button class="detect-button" id="detect-button" type="button"><span class="step-number">1</span><span class="button-label">手を検出</span><span class="button-note" id="detect-status">タップして検出を開始</span></button>
     </section>
-    <aside class="instruction"><span class="instruction-number">01</span><p>手を検出し、<br>H-02に移行</p><span class="instruction-rule"></span><small>手をカメラにかざしてください</small></aside>
   </main>
 `
 
