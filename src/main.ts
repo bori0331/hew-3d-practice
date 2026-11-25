@@ -7,7 +7,7 @@ app.innerHTML = `
   <main class="waiting-screen">
     <header class="topbar">
       <div class="brand-frame" aria-label="ロゴ">
-        <span class="brand-line brand-line-left"></span><span class="brand-name">ロゴ</span><span class="brand-line brand-line-right"></span>
+        <span class="brand-line brand-line-left"></span><span class="brand-name">HOLO HOUSE</span><span class="brand-line brand-line-right"></span>
       </div>
     </header>
     <section class="content-panel" aria-label="待機画面">
