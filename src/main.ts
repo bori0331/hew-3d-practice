@@ -2,6 +2,10 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
+if (new URLSearchParams(window.location.search).get('screen') === 'H02') {
+  await import('./h02')
+} else {
+
 const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
   <main class="waiting-screen">
@@ -125,3 +129,5 @@ detectButton.addEventListener('click', async () => {
   detectStatus.textContent = detected ? '手を検出しました' : '手検出センサー未接続'
   detectButton.disabled = false
 })
+
+}
