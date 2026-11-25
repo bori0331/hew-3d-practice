@@ -2,6 +2,10 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
+if (new URLSearchParams(window.location.search).get('screen') === 'H02') {
+  await import('./h02')
+} else {
+
 const app = document.querySelector<HTMLDivElement>('#app')!
 app.innerHTML = `
   <main class="waiting-screen">
@@ -564,6 +568,10 @@ detectButton.addEventListener('click', async () => {
   detectButton.disabled = false
 })
 
+<<<<<<< HEAD
 
 
 
+=======
+}
+>>>>>>> 2b57a3114fefbf1fefca50a55ddbf5cbe84c68db

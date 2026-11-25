@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
+
+:root {
+  font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+  color: #27b8ad;
+  background: #333;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --teal: #27b8ad;
+  --pink: #f18aea;
+}
+* { box-sizing: border-box; }
+html, body, #app {
+  width: 100%; height: 100%; min-width: 320px; min-height: 100%;
+  margin: 0; overflow: hidden; background: #333;
+}
+body { min-height: 100vh; }
+button { font: inherit; }
+.genre-screen {
+  position: relative; width: 100%; height: 100vh; min-height: 520px;
+  overflow: hidden; background: radial-gradient(ellipse at 50% 46%, #3c4847 0%, #333 56%, #292d2d 100%);
+}
+.genre-header {
+  position: absolute; z-index: 4; top: 0; left: 0; width: 100%;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: clamp(18px, 3vh, 34px) clamp(24px, 4vw, 64px); pointer-events: none;
+}
+.genre-logo {
+  min-width: 220px; padding: 12px 22px; border: 1px solid rgba(39,184,173,.75);
+  border-radius: 12px; color: var(--teal); font: 300 clamp(19px, 2vw, 28px) 'Outfit', sans-serif;
+  letter-spacing: .2em; text-align: center; background: rgba(20,28,28,.24);
+}
+.genre-heading { position: absolute; left: 50%; top: clamp(16px, 2.3vh, 28px); transform: translateX(-50%); text-align: center; white-space: nowrap; }
+.genre-heading h1 { margin: 0; color: var(--teal); font: 700 clamp(28px, 3.4vw, 48px) 'Noto Sans JP', sans-serif; letter-spacing: .12em; text-shadow: 0 0 22px rgba(39,184,173,.18); }
+.genre-heading p { margin: 13px 0 0; color: rgba(230,239,236,.68); font: 400 clamp(11px, 1vw, 14px) 'Noto Sans JP', sans-serif; letter-spacing: .12em; }
+.screen-code { margin-top: 13px; color: rgba(39,184,173,.78); font: 12px 'Outfit', sans-serif; letter-spacing: .16em; }
+.model-stage { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: pan-y; }
+.model-stage:active { cursor: grabbing; }
+.stage-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.model-label { position: absolute; z-index: 2; top: 77%; transform: translate(-50%, -50%); color: rgba(39,184,173,.72); font: 500 clamp(17px, 1.8vw, 26px) 'Noto Sans JP', sans-serif; letter-spacing: .08em; text-shadow: 0 2px 12px rgba(0,0,0,.95); pointer-events: none; white-space: nowrap; }
+.label-left { left: 18%; opacity: .66; }
+.label-center { left: 50%; top: 80%; color: var(--teal); font-size: clamp(26px, 2.8vw, 40px); font-weight: 700; text-shadow: 0 0 20px rgba(39,184,173,.3), 0 3px 12px #111; }
+.label-right { left: 82%; opacity: .66; }
+.arrow-button {
+  position: absolute; z-index: 5; top: 47%; transform: translateY(-50%);
+  width: clamp(48px, 5vw, 72px); height: clamp(64px, 7vw, 92px);
+  border: 1px solid rgba(39,184,173,.82); border-radius: 14px;
+  color: var(--teal); background: rgba(20,30,30,.78); font-size: clamp(36px, 4vw, 54px);
+  line-height: 1; cursor: pointer; transition: background .22s ease, box-shadow .22s ease, transform .22s ease;
+  box-shadow: 0 0 18px rgba(39,184,173,.08);
+}
+.arrow-button:hover { background: rgba(39,184,173,.18); box-shadow: 0 0 25px rgba(39,184,173,.25); transform: translateY(-50%) scale(1.08); }
+.arrow-left { left: clamp(18px, 3vw, 44px); }
+.arrow-right { right: clamp(18px, 3vw, 44px); }
+.swipe-hint { position: absolute; z-index: 2; left: 50%; bottom: 4.5%; transform: translateX(-50%); color: rgba(213,226,222,.48); font: 11px 'Noto Sans JP', sans-serif; letter-spacing: .16em; white-space: nowrap; pointer-events: none; }
+.description-panel {
+  position: absolute; z-index: 6; right: clamp(24px, 4vw, 64px); bottom: clamp(24px, 4vh, 48px);
+  width: min(430px, 34vw); min-height: 190px; padding: 19px 24px 17px;
+  border: 1px solid rgba(39,184,173,.8); border-radius: 14px;
+  background: rgba(25,35,34,.94); box-shadow: 0 12px 40px rgba(0,0,0,.3), 0 0 22px rgba(39,184,173,.07);
+  pointer-events: none;
+}
+.description-heading { display: flex; gap: 12px; align-items: center; color: #91d9d2; font: 11px 'Outfit', sans-serif; letter-spacing: .18em; }
+.description-number { color: var(--pink); font-size: 16px; }
+.description-panel h2 { margin: 12px 0 12px; color: var(--teal); font: 700 clamp(23px, 2vw, 29px) 'Noto Sans JP', sans-serif; }
+.description-panel p { margin: 0; color: #d0d9d6; font: 13px/1.9 'Noto Sans JP', sans-serif; }
+.hold-guide { display: flex; align-items: center; gap: 9px; margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(39,184,173,.28); color: rgba(241,138,234,.94); font: 11px 'Noto Sans JP', sans-serif; letter-spacing: .03em; }
+.hold-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+.screen-message { position: absolute; z-index: 7; left: 50%; bottom: 2%; transform: translateX(-50%); margin: 0; color: #f3a6ec; font: 12px 'Noto Sans JP', sans-serif; text-align: center; pointer-events: none; }
+@media (max-width: 850px) {
+  .genre-logo { min-width: 0; padding: 10px 14px; font-size: 16px; }
+  .screen-code { display: none; }
+  .genre-heading { top: 86px; }
+  .genre-heading h1 { font-size: 26px; }
+  .genre-heading p { margin-top: 8px; }
+  .description-panel { right: 16px; bottom: 16px; width: min(360px, 62vw); min-height: 0; padding: 13px 16px; }
+  .description-panel h2 { margin: 8px 0; font-size: 20px; }
+  .description-panel p { font-size: 11px; }
+  .hold-guide { margin-top: 9px; padding-top: 8px; font-size: 9px; }
+  .label-center { top: 75%; }
+  .label-left, .label-right { top: 71%; }
+}
+@media (max-width: 540px) {
+  .genre-header { padding: 14px; }
+  .genre-logo { font-size: 13px; }
+  .genre-heading { top: 72px; }
+  .genre-heading h1 { font-size: 22px; }
+  .genre-heading p { font-size: 9px; }
+  .description-panel { width: calc(100% - 32px); right: 16px; bottom: 14px; }
+  .arrow-button { top: 43%; width: 42px; height: 58px; }
+  .arrow-left { left: 9px; } .arrow-right { right: 9px; }
+  .swipe-hint { bottom: 32%; font-size: 9px; }
+}
