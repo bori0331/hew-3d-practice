@@ -567,11 +567,5 @@ detectButton.addEventListener('click', async () => {
   detectStatus.textContent = detected ? '手を検出しました' : '手検出センサー未接続'
   detectButton.disabled = false
 })
-
-<<<<<<< HEAD
-
-
-
-=======
 }
->>>>>>> 2b57a3114fefbf1fefca50a55ddbf5cbe84c68db
+
