@@ -550,22 +550,178 @@ function animate() {
 }
 animate()
 
-// センサー実装を後から差し込めるよう、画面表示と検出処理を分離しています。
-type HandDetector = { start: () => Promise<boolean> }
-const handDetector: HandDetector = {
-  async start() {
-    // TODO: カメラ / 手検出センサー接続後、検出開始処理を実装する。
-    return false
-  },
-}
 const detectButton = document.querySelector<HTMLButtonElement>('#detect-button')!
 const detectStatus = document.querySelector<HTMLSpanElement>('#detect-status')!
+const detectLabel = detectButton.querySelector<HTMLSpanElement>('.button-label')!
+
+type HandLandmarkerInstance = {
+  detectForVideo: (video: HTMLVideoElement, timestamp: number) => { landmarks: unknown[][] }
+  close: () => void
+}
+type VisionTasksApi = {
+  FilesetResolver: { forVisionTasks: (wasmPath: string) => Promise<unknown> }
+  HandLandmarker: {
+    createFromOptions: (vision: unknown, options: Record<string, unknown>) => Promise<HandLandmarkerInstance>
+  }
+}
+
+const mediaPipeVersion = '1.2.3'
+const mediaPipeCdn = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${mediaPipeVersion}`
+const handModelUrl = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'
+let cameraStream: MediaStream | null = null
+let cameraVideo: HTMLVideoElement | null = null
+let handLandmarker: HandLandmarkerInstance | null = null
+let detectionFrame = 0
+let isDetecting = false
+let lastVideoTime = -1
+let lastInferenceTime = 0
+let consecutiveHandFrames = 0
+
+function stopHandDetection() {
+  isDetecting = false
+  cancelAnimationFrame(detectionFrame)
+  cameraStream?.getTracks().forEach((track) => track.stop())
+  cameraStream = null
+  if (cameraVideo) {
+    cameraVideo.pause()
+    cameraVideo.srcObject = null
+    cameraVideo.remove()
+    cameraVideo = null
+  }
+  handLandmarker?.close()
+  handLandmarker = null
+  detectLabel.textContent = '手を検出'
+}
+
+async function createHandLandmarker(): Promise<HandLandmarkerInstance> {
+  const moduleUrl = `${mediaPipeCdn}/vision_bundle.mjs`
+  const visionTasks = await import(/* @vite-ignore */ moduleUrl) as unknown as VisionTasksApi
+  const vision = await visionTasks.FilesetResolver.forVisionTasks(`${mediaPipeCdn}/wasm`)
+  const commonOptions = {
+    runningMode: 'VIDEO',
+    numHands: 1,
+    minHandDetectionConfidence: 0.65,
+    minHandPresenceConfidence: 0.65,
+    minTrackingConfidence: 0.6,
+    baseOptions: { modelAssetPath: handModelUrl, delegate: 'GPU' },
+  }
+
+  try {
+    return await visionTasks.HandLandmarker.createFromOptions(vision, commonOptions)
+  } catch {
+    return visionTasks.HandLandmarker.createFromOptions(vision, {
+      ...commonOptions,
+      baseOptions: { modelAssetPath: handModelUrl, delegate: 'CPU' },
+    })
+  }
+}
+
+function enterH02() {
+  stopHandDetection()
+  detectStatus.textContent = '手を検出しました。画面を切り替えます…'
+  const h02Url = new URL(window.location.href)
+  h02Url.searchParams.set('screen', 'H02')
+  window.location.assign(h02Url)
+}
+
+function detectHands(timestamp: number) {
+  if (!isDetecting || !cameraVideo || !handLandmarker) return
+
+  if (cameraVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+      && cameraVideo.currentTime !== lastVideoTime
+      && timestamp - lastInferenceTime >= 90) {
+    lastVideoTime = cameraVideo.currentTime
+    lastInferenceTime = timestamp
+    let result: { landmarks: unknown[][] }
+    try {
+      result = handLandmarker.detectForVideo(cameraVideo, timestamp)
+    } catch {
+      stopHandDetection()
+      detectButton.disabled = false
+      detectStatus.textContent = '手を検出できませんでした。もう一度お試しください。'
+      return
+    }
+    consecutiveHandFrames = result.landmarks.length > 0 ? consecutiveHandFrames + 1 : 0
+    if (consecutiveHandFrames >= 3) {
+      enterH02()
+      return
+    }
+    detectStatus.textContent = consecutiveHandFrames > 0
+      ? '手を確認しています…'
+      : '手をカメラにかざしてください'
+  }
+
+  detectionFrame = requestAnimationFrame(detectHands)
+}
+
+async function startHandDetection() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error('このブラウザではカメラを利用できません。')
+  }
+
+  cameraStream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+      facingMode: { ideal: 'user' },
+      width: { ideal: 640 },
+      height: { ideal: 480 },
+    },
+  })
+  cameraVideo = document.createElement('video')
+  cameraVideo.muted = true
+  cameraVideo.autoplay = true
+  cameraVideo.playsInline = true
+  cameraVideo.setAttribute('aria-hidden', 'true')
+  Object.assign(cameraVideo.style, {
+    position: 'fixed',
+    width: '1px',
+    height: '1px',
+    opacity: '0',
+    pointerEvents: 'none',
+    left: '0',
+    bottom: '0',
+  })
+  cameraVideo.srcObject = cameraStream
+  document.body.appendChild(cameraVideo)
+  await cameraVideo.play()
+
+  detectStatus.textContent = '手検出モデルを読み込んでいます…'
+  handLandmarker = await createHandLandmarker()
+  lastVideoTime = -1
+  lastInferenceTime = 0
+  consecutiveHandFrames = 0
+  isDetecting = true
+  detectLabel.textContent = '検出を停止'
+  detectStatus.textContent = '手をカメラにかざしてください'
+  detectionFrame = requestAnimationFrame(detectHands)
+}
+
 detectButton.addEventListener('click', async () => {
+  if (isDetecting) {
+    stopHandDetection()
+    detectStatus.textContent = '手の検出を停止しました'
+    return
+  }
+
   detectButton.disabled = true
-  detectStatus.textContent = 'センサー接続待ち'
-  const detected = await handDetector.start()
-  detectStatus.textContent = detected ? '手を検出しました' : '手検出センサー未接続'
-  detectButton.disabled = false
+  detectStatus.textContent = 'カメラを起動しています…'
+  try {
+    await startHandDetection()
+  } catch (error) {
+    stopHandDetection()
+    const errorName = error instanceof DOMException ? error.name : ''
+    if (errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError') {
+      detectStatus.textContent = 'カメラの使用が許可されませんでした。ブラウザの設定を確認してください。'
+    } else if (errorName === 'NotFoundError' || errorName === 'DevicesNotFoundError') {
+      detectStatus.textContent = 'カメラが見つかりませんでした。'
+    } else if (error instanceof TypeError && !window.isSecureContext) {
+      detectStatus.textContent = 'カメラを使うにはlocalhostまたはHTTPSで開いてください。'
+    } else {
+      detectStatus.textContent = 'カメラまたは手検出モデルを起動できませんでした。ネット接続とカメラ設定を確認してください。'
+    }
+  } finally {
+    detectButton.disabled = false
+  }
 })
 }
 
