@@ -225,7 +225,7 @@ function updateScreen() {
   const number = document.querySelector<HTMLSpanElement>('#description-number')
   if (number) number.textContent = String(selectedIndex + 1).padStart(2, '0')
 
-  models.forEach((model, index) => {
+  models.forEach((_, index) => {
     const distance = (index - selectedIndex + genres.length) % genres.length
     const target = modelTargets[index]
 
